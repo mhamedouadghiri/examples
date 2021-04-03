@@ -36,14 +36,14 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 # Permalinks to download movielens data.
-MOVIELENS_1M_URL = "http://files.grouplens.org/datasets/movielens/ml-1m.zip"
-MOVIELENS_ZIP_FILENAME = "ml-1m.zip"
-MOVIELENS_ZIP_HASH = "a6898adb50b9ca05aa231689da44c217cb524e7ebd39d264c56e2832f2c54e20"
-MOVIELENS_EXTRACTED_DIR = "ml-1m"
-RATINGS_FILE_NAME = "ratings.dat"
-MOVIES_FILE_NAME = "movies.dat"
-RATINGS_DATA_COLUMNS = ["UserID", "MovieID", "Rating", "Timestamp"]
-MOVIES_DATA_COLUMNS = ["MovieID", "Title", "Genres"]
+MOVIELENS_1M_URL = "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
+MOVIELENS_ZIP_FILENAME = "ml-latest-small.zip"
+MOVIELENS_ZIP_HASH = "696D65A3DFCEAC7C45750AD32DF2C259311949EFEC81F0F144FDFB91EBC9E436".lower()
+MOVIELENS_EXTRACTED_DIR = "ml-latest-small"
+RATINGS_FILE_NAME = "ratings.csv"
+MOVIES_FILE_NAME = "movies.csv"
+# RATINGS_DATA_COLUMNS = ["UserID", "MovieID", "Rating", "Timestamp"]
+# MOVIES_DATA_COLUMNS = ["MovieID", "Title", "Genres"]
 OUTPUT_TRAINING_DATA_FILENAME = "train_movielens_1m.tfrecord"
 OUTPUT_TESTING_DATA_FILENAME = "test_movielens_1m.tfrecord"
 OUTPUT_MOVIE_VOCAB_FILENAME = "movie_vocab.json"
@@ -98,14 +98,14 @@ def download_and_extract_data(data_directory,
 def read_data(data_directory):
   """Read movielens ratings.dat and movies.dat file into dataframe."""
   ratings_df = pd.read_csv(
-      os.path.join(data_directory, RATINGS_FILE_NAME),
-      sep="::",
-      names=RATINGS_DATA_COLUMNS)
-  ratings_df["Timestamp"] = ratings_df["Timestamp"].apply(int)
+      os.path.join(data_directory, RATINGS_FILE_NAME))
+      #sep="::",
+      #names=RATINGS_DATA_COLUMNS)
+  ratings_df["timestamp"] = ratings_df["timestamp"].apply(int)
   movies_df = pd.read_csv(
-      os.path.join(data_directory, MOVIES_FILE_NAME),
-      sep="::",
-      names=MOVIES_DATA_COLUMNS)
+      os.path.join(data_directory, MOVIES_FILE_NAME))
+      #sep="::",
+      #names=MOVIES_DATA_COLUMNS)
   return ratings_df, movies_df
 
 
@@ -114,8 +114,8 @@ def convert_to_timelines(ratings_df):
   timelines = collections.defaultdict(list)
   movie_counts = collections.Counter()
   for user_id, movie_id, _, timestamp in ratings_df.values:
-    timelines[user_id].append([movie_id, int(timestamp)])
-    movie_counts[movie_id] += 1
+    timelines[int(user_id)].append([int(movie_id), int(timestamp)])
+    movie_counts[int(movie_id)] += 1
   # Sort per-user timeline by timestamp
   for (user_id, timeline) in timelines.items():
     timeline.sort(key=lambda x: x[1])
